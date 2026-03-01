@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Debrief</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+–bg:#0a0a0a;
+–surface:#111;
+–border:#1e1e1e;
+–text:#d4d0c8;
+–muted:#3a3a3a;
+–muted-text:#555;
+–accent:#c8a96e;
+–red:#e05252;
+–green:#52a96e;
+}
+body{background:var(–bg);color:var(–text);font-family:‘IBM Plex Mono’,monospace;min-height:100vh;font-size:13px}
+
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+#form-screen{padding:28px 24px 80px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}
+.logo{font-size:9px;letter-spacing:.4em;color:var(–muted-text);text-transform:uppercase}
+.hist-btn{background:none;border:1px solid var(–border);color:var(–muted-text);padding:5px 12px;cursor:pointer;font-family:inherit;font-size:9px;letter-spacing:.15em;transition:all .15s}
+.hist-btn:hover{border-color:var(–accent);color:var(–accent)}
+
+.field{margin-bottom:26px}
+.field-label{font-size:9px;letter-spacing:.3em;color:var(–muted-text);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.field-label .count{color:var(–accent)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:none;border:1px solid var(–border);color:var(–muted-text);padding:7px 11px;cursor:pointer;font-family:inherit;font-size:11px;border-radius:2px;transition:all .15s;text-align:left;line-height:1.3}
+.chip:hover{border-color:var(–text);color:var(–text)}
+.chip.on{border-color:var(–accent);color:var(–accent);background:rgba(200,169,110,.06)}
+.chip.on-red{border-color:var(–red);color:var(–red);background:rgba(224,82,82,.06)}
+.chip.on-green{border-color:var(–green);color:var(–green);background:rgba(82,169,110,.06)}
+
+.divider{font-size:9px;letter-spacing:.25em;color:var(–muted-text);text-transform:uppercase;margin:10px 0 8px;opacity:.5;width:100%}
+
+.rating-row{display:flex;gap:6px}
+.star{background:none;border:none;font-size:24px;cursor:pointer;color:var(–border);transition:color .1s;padding:0 3px;line-height:1}
+.star.on{color:var(–accent)}
+
+textarea{width:100%;background:var(–surface);border:1px solid var(–border);color:var(–text);font-family:‘IBM Plex Mono’,monospace;font-size:12px;padding:12px;resize:none;line-height:1.7;outline:none;transition:border .15s;border-radius:2px}
+textarea:focus{border-color:var(–accent)}
+textarea::placeholder{color:var(–muted-text)}
+
+.submit-btn{width:100%;background:var(–accent);border:none;color:#0a0a0a;font-family:‘IBM Plex Mono’,monospace;font-size:11px;font-weight:500;letter-spacing:.2em;padding:14px;cursor:pointer;text-transform:uppercase;transition:opacity .15s;margin-top:4px}
+.submit-btn:hover{opacity:.85}
+.submit-btn:disabled{opacity:.25;cursor:not-allowed}
+
+#confirm-screen{align-items:center;justify-content:center;text-align:center;padding:40px 24px}
+.confirm-mark{font-size:32px;margin-bottom:18px;opacity:.7}
+.confirm-title{font-size:13px;letter-spacing:.12em;color:var(–accent);margin-bottom:6px}
+.confirm-meta{font-size:11px;color:var(–muted-text);margin-bottom:28px}
+.pattern-box{background:var(–surface);border:1px solid var(–border);border-left:3px solid var(–red);padding:14px 16px;text-align:left;max-width:340px;width:100%;margin-bottom:28px;font-size:11px;color:var(–text);line-height:1.8}
+.pattern-box.hidden{display:none}
+.pattern-label{font-size:9px;letter-spacing:.25em;color:var(–red);text-transform:uppercase;margin-bottom:6px}
+.new-btn{background:none;border:1px solid var(–border);color:var(–muted-text);padding:10px 24px;cursor:pointer;font-family:inherit;font-size:9px;letter-spacing:.25em;transition:all .15s}
+.new-btn:hover{border-color:var(–text);color:var(–text)}
+
+#history-screen{padding:24px}
+.hist-header{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.back-btn{background:none;border:none;color:var(–muted-text);font-size:18px;cursor:pointer;transition:color .15s}
+.back-btn:hover{color:var(–text)}
+.hist-title{font-size:9px;letter-spacing:.35em;color:var(–muted-text);text-transform:uppercase}
+.hist-count{font-size:9px;color:var(–muted-text);margin-left:auto}
+
+.entry{border:1px solid var(–border);padding:13px 15px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;border-radius:2px}
+.entry:hover{border-color:var(–accent)}
+.entry-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.entry-date{font-size:9px;letter-spacing:.15em;color:var(–muted-text)}
+.entry-stars{font-size:11px;color:var(–accent)}
+.entry-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.entry-chip{font-size:9px;padding:2px 7px;border-radius:2px;letter-spacing:.08em}
+.chip-red{color:var(–red);background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.2)}
+.chip-green{color:var(–green);background:rgba(82,169,110,.08);border:1px solid rgba(82,169,110,.2)}
+.entry-note{font-size:11px;color:var(–muted-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{text-align:center;padding:60px 20px;color:var(–muted-text);font-size:11px;line-height:2.2}
+
+#detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;padding:20px;overflow-y:auto}
+#detail-overlay.open{display:flex;justify-content:center;align-items:flex-start}
+.detail-box{background:var(–surface);border:1px solid var(–border);padding:22px;max-width:460px;width:100%;margin-top:24px;border-radius:2px}
+.detail-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.detail-date{font-size:9px;letter-spacing:.2em;color:var(–muted-text)}
+.detail-x{background:none;border:none;color:var(–muted-text);font-size:20px;cursor:pointer;line-height:1}
+.detail-x:hover{color:var(–text)}
+.detail-stars{font-size:16px;color:var(–accent);margin-bottom:14px}
+.detail-section{margin-bottom:13px}
+.detail-lbl{font-size:9px;letter-spacing:.25em;color:var(–muted-text);text-transform:uppercase;margin-bottom:6px}
+.detail-chips{display:flex;flex-wrap:wrap;gap:5px}
+.detail-note{font-size:12px;color:var(–text);line-height:1.75;white-space:pre-wrap}
+.detail-del{background:none;border:1px solid var(–border);color:var(–muted-text);padding:7px 14px;cursor:pointer;font-family:inherit;font-size:9px;letter-spacing:.2em;margin-top:14px;transition:all .15s}
+.detail-del:hover{border-color:var(–red);color:var(–red)}
+</style>
+
+</head>
+<body>
+
+<div id="form-screen" class="screen active">
+  <div class="top-bar">
+    <div class="logo">// debrief</div>
+    <button class="hist-btn" onclick="showHistory()">HISTORY</button>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Context</div>
+    <div class="chips">
+      <button class="chip" data-group="ctx" data-val="Street">Street</button>
+      <button class="chip" data-group="ctx" data-val="Bar / Party">Bar / Party</button>
+      <button class="chip" data-group="ctx" data-val="Social circle">Social circle</button>
+      <button class="chip" data-group="ctx" data-val="Day game">Day game</button>
+      <button class="chip" data-group="ctx" data-val="Date">Date</button>
+      <button class="chip" data-group="ctx" data-val="Online">Online</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">What worked <span class="count" id="did-count"></span></div>
+    <div class="chips">
+      <button class="chip" data-group="did" data-color="green" data-val="Approached">Approached</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Held frame">Held frame</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Passed shit test">Passed shit test</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Good body language">Good body language</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Talked emotions">Talked emotions</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Went deep in convo">Went deep in convo</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Push/pull worked">Push/pull worked</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Escalated physically">Escalated physically</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Isolated her">Isolated her</button>
+      <button class="chip" data-group="did" data-color="green" data-val="No filter">No filter</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Led decisively">Led decisively</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Got number / date">Got number / date</button>
+      <button class="chip" data-group="did" data-color="green" data-val="Closed">Closed</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Where I choked <span class="count" id="choke-count"></span></div>
+    <div class="chips">
+      <span class="divider">Mindset</span>
+      <button class="chip" data-group="choke" data-color="red" data-val="Didn't approach">Didn't approach</button>
+      <button class="chip" data-group="choke" data-color="red" data-val="Got in my head">Got in my head</button>
+      <button class="chip" data-group="choke" data-color="red" data-val="Showed neediness">Showed neediness</button>
+      <button class="chip" data-group="choke" data-color="red" data-val="Put her on pedestal">Put her on pedestal</button>
+      <button class="chip" data-group="choke" data-color="red" data-val="Filtered myself">Filtered myself</button>
+
+```
+  <span class="divider">Frame & Tests</span>
+  <button class="chip" data-group="choke" data-color="red" data-val="Failed shit test">Failed shit test</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Justified myself">Justified myself</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Got reactive">Got reactive</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Asked for permission">Asked for permission</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Agreed with everything">Agreed with everything</button>
+
+  <span class="divider">Conversation</span>
+  <button class="chip" data-group="choke" data-color="red" data-val="Stayed surface level">Stayed surface level</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Interview mode">Interview mode</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="No emotions in convo">No emotions in convo</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Trash conversation">Trash conversation</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Talked too much about myself">Talked too much about myself</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Rapport negatif">Rapport negatif</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Judged what she said">Judged what she said</button>
+
+  <span class="divider">Body language</span>
+  <button class="chip" data-group="choke" data-color="red" data-val="Bad posture">Bad posture</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Skipped distance zones">Skipped distance zones</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Broke eye contact too fast">Broke eye contact too fast</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Leaned in too much">Leaned in too much</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Voice too high / fast">Voice too high / fast</button>
+
+  <span class="divider">Escalation</span>
+  <button class="chip" data-group="choke" data-color="red" data-val="Didn't escalate physically">Didn't escalate physically</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Didn't isolate">Didn't isolate</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Skipped touch steps">Skipped touch steps</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="Backed off too early">Backed off too early</button>
+  <button class="chip" data-group="choke" data-color="red" data-val="No tension built">No tension built</button>
+
+  <span class="divider">Clean</span>
+  <button class="chip" data-group="choke" data-color="red" data-val="Nothing — clean session">Nothing — clean session</button>
+</div>
+```
+
+  </div>
+
+  <div class="field">
+    <div class="field-label">Session rating</div>
+    <div class="rating-row" id="stars">
+      <button class="star" data-v="1">★</button>
+      <button class="star" data-v="2">★</button>
+      <button class="star" data-v="3">★</button>
+      <button class="star" data-v="4">★</button>
+      <button class="star" data-v="5">★</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">One fix for next time</div>
+    <textarea id="note" rows="2" placeholder="e.g. She tested me on my job and I explained myself — next time: AA or just laugh"></textarea>
+  </div>
+
+<button class="submit-btn" id="submit-btn" onclick="submitEntry()" disabled>LOG →</button>
+
+</div>
+
+<div id="confirm-screen" class="screen">
+  <div class="confirm-mark">◎</div>
+  <div class="confirm-title">Logged.</div>
+  <div class="confirm-meta" id="confirm-meta"></div>
+  <div class="pattern-box hidden" id="pattern-box">
+    <div class="pattern-label">Pattern detected</div>
+    <div id="pattern-text"></div>
+  </div>
+  <button class="new-btn" onclick="resetForm()">NEW ENTRY</button>
+</div>
+
+<div id="history-screen" class="screen">
+  <div class="hist-header">
+    <button class="back-btn" onclick="showScreen('form-screen')">←</button>
+    <div class="hist-title">// history</div>
+    <div class="hist-count" id="hist-count"></div>
+  </div>
+  <div id="entries-list"></div>
+</div>
+
+<div id="detail-overlay">
+  <div class="detail-box" id="detail-box"></div>
+</div>
+
+<script>
+const state = {ctx:[], did:[], choke:[], stars:0, note:''};
+
+document.querySelectorAll('.chip[data-group]').forEach(c => {
+  c.addEventListener('click', () => {
+    const g = c.dataset.group, v = c.dataset.val, col = c.dataset.color;
+    if(g === 'ctx'){
+      document.querySelectorAll('[data-group="ctx"]').forEach(x => x.classList.remove('on'));
+      const already = state.ctx[0] === v;
+      state.ctx = already ? [] : [v];
+      if(!already) c.classList.add('on');
+    } else {
+      const arr = state[g];
+      const idx = arr.indexOf(v);
+      const cls = col==='red' ? 'on-red' : col==='green' ? 'on-green' : 'on';
+      if(idx===-1){ arr.push(v); c.classList.add(cls); }
+      else { arr.splice(idx,1); c.classList.remove(cls); }
+      const el = document.getElementById(g+'-count');
+      if(el) el.textContent = arr.length ? `(${arr.length})` : '';
+    }
+    checkSubmit();
+  });
+});
+
+document.querySelectorAll('.star').forEach(s => {
+  s.addEventListener('click', () => {
+    state.stars = parseInt(s.dataset.v);
+    document.querySelectorAll('.star').forEach((x,i) => x.classList.toggle('on', i < state.stars));
+    checkSubmit();
+  });
+});
+
+document.getElementById('note').addEventListener('input', e => { state.note = e.target.value; });
+
+function checkSubmit(){
+  document.getElementById('submit-btn').disabled = !(state.ctx.length > 0 && state.stars > 0);
+}
+
+function submitEntry(){
+  const entry = {
+    id: Date.now().toString(),
+    date: new Date().toISOString(),
+    ctx: state.ctx[0] || '',
+    did: [...state.did],
+    choke: [...state.choke],
+    stars: state.stars,
+    note: state.note.trim()
+  };
+  const all = loadEntries();
+  all.unshift(entry);
+  saveEntries(all);
+
+  const pattern = detectPattern(all);
+  const d = new Date();
+  document.getElementById('confirm-meta').textContent =
+    `${d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} · ${entry.ctx} · ${'★'.repeat(entry.stars)}`;
+  const pb = document.getElementById('pattern-box');
+  if(pattern){ pb.classList.remove('hidden'); document.getElementById('pattern-text').textContent = pattern; }
+  else { pb.classList.add('hidden'); }
+  showScreen('confirm-screen');
+}
+
+function detectPattern(entries){
+  if(entries.length < 3) return null;
+  const recent = entries.slice(0, Math.min(6, entries.length));
+  const freq = {};
+  recent.forEach(e => e.choke.forEach(c => {
+    if(c !== 'Nothing — clean session') freq[c] = (freq[c]||0) + 1;
+  }));
+  const sorted = Object.entries(freq).sort((a,b) => b[1]-a[1]);
+  if(sorted.length && sorted[0][1] >= 2)
+    return `"${sorted[0][0]}" came up ${sorted[0][1]}x in your last ${recent.length} sessions. That's the one thing to fix.`;
+  return null;
+}
+
+function resetForm(){
+  state.ctx=[]; state.did=[]; state.choke=[]; state.stars=0; state.note='';
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on','on-red','on-green'));
+  document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
+  document.getElementById('note').value = '';
+  document.getElementById('did-count').textContent = '';
+  document.getElementById('choke-count').textContent = '';
+  document.getElementById('submit-btn').disabled = true;
+  showScreen('form-screen');
+}
+
+function showHistory(){
+  const all = loadEntries();
+  document.getElementById('hist-count').textContent = `${all.length} entries`;
+  const list = document.getElementById('entries-list');
+  if(!all.length){
+    list.innerHTML = `<div class="empty">No entries yet.<br>Log your first interaction.</div>`;
+  } else {
+    list.innerHTML = all.map(e => {
+      const d = new Date(e.date);
+      const ds = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
+      return `<div class="entry" onclick="showDetail('${e.id}')">
+        <div class="entry-top">
+          <span class="entry-date">${ds} · ${e.ctx}</span>
+          <span class="entry-stars">${'★'.repeat(e.stars)}</span>
+        </div>
+        <div class="entry-chips">
+          ${e.did.slice(0,3).map(t=>`<span class="entry-chip chip-green">${t}</span>`).join('')}
+          ${e.choke.filter(c=>c!=='Nothing — clean session').slice(0,3).map(t=>`<span class="entry-chip chip-red">${t}</span>`).join('')}
+        </div>
+        ${e.note ? `<div class="entry-note">${e.note}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+  showScreen('history-screen');
+}
+
+function showDetail(id){
+  const e = loadEntries().find(x => x.id===id);
+  if(!e) return;
+  const d = new Date(e.date);
+  const ds = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('detail-box').innerHTML = `
+    <div class="detail-hdr">
+      <div class="detail-date">${ds} · ${e.ctx}</div>
+      <button class="detail-x" onclick="closeDetail()">×</button>
+    </div>
+    <div class="detail-stars">${'★'.repeat(e.stars)}${'☆'.repeat(5-e.stars)}</div>
+    ${e.did.length ? `<div class="detail-section"><div class="detail-lbl">Worked</div><div class="detail-chips">${e.did.map(t=>`<span class="entry-chip chip-green">${t}</span>`).join('')}</div></div>` : ''}
+    ${e.choke.length ? `<div class="detail-section"><div class="detail-lbl">Choked</div><div class="detail-chips">${e.choke.map(t=>`<span class="entry-chip chip-red">${t}</span>`).join('')}</div></div>` : ''}
+    ${e.note ? `<div class="detail-section"><div class="detail-lbl">Fix</div><div class="detail-note">${e.note}</div></div>` : ''}
+    <button class="detail-del" onclick="deleteEntry('${e.id}')">DELETE</button>
+  `;
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function closeDetail(){ document.getElementById('detail-overlay').classList.remove('open'); }
+
+function deleteEntry(id){
+  saveEntries(loadEntries().filter(e => e.id!==id));
+  closeDetail();
+  showHistory();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function loadEntries(){
+  try{ return JSON.parse(localStorage.getItem('debrief-local')||'[]'); }
+  catch{ return []; }
+}
+
+function saveEntries(entries){
+  localStorage.setItem('debrief-local', JSON.stringify(entries));
+}
+
+document.getElementById('detail-overlay').addEventListener('click', e => {
+  if(e.target === document.getElementById('detail-overlay')) closeDetail();
+});
+</script>
+
+</body>
+</html>
